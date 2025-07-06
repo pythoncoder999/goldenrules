@@ -1,1 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dale Carnegie's Golden Rules - Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn.active {
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            color: #333;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .category {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-back .category {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .rule-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-back .rule-number {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .rule-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .card-back .rule-text {
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .flashcard {
+                height: 350px;
+            }
+            
+            .card-face {
+                padding: 30px 20px;
+            }
+            
+            .rule-number {
+                font-size: 2.5rem;
+            }
+            
+            .rule-text {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dale Carnegie's Golden Rules</h1>
+            <p>Interactive Flashcards for Mastering People Skills</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn active" onclick="filterCategory('all')">All Rules</button>
+            <button class="btn" onclick="filterCategory('handling')">Handling People</button>
+            <button class="btn" onclick="filterCategory('liking')">Making Friends</button>
+            <button class="btn" onclick="filterCategory('winning')">Winning People</button>
+            <button class="btn" onclick="filterCategory('leadership')">Leadership</button>
+        </div>
+
+        <div class="flashcard-container">
+            <div class="flashcard" onclick="flipCard()">
+                <div class="card-face card-front">
+                    <div class="category" id="front-category"></div>
+                    <div class="rule-number" id="front-number"></div>
+                    <div class="rule-text" id="front-text">Click to reveal the rule</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="category" id="back-category"></div>
+                    <div class="rule-number" id="back-number"></div>
+                    <div class="rule-text" id="back-text"></div>
+                </div>
+                <div class="click-hint">Click to flip</div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" onclick="previousCard()" id="prev-btn">‹</button>
+            <div class="progress">
+                <span id="current-card">1</span> / <span id="total-cards">22</span>
+            </div>
+            <button class="nav-btn" onclick="nextCard()" id="next-btn">›</button>
+        </div>
+    </div>
+
+    <script>
+        const rules = [
+            {
+                category: 'handling',
+                categoryName: 'Handling People',
+                number: 1,
+                rule: "Don't criticize, condemn, or complain."
+            },
+            {
+                category: 'handling',
+                categoryName: 'Handling People',
+                number: 2,
+                rule: "Give honest and sincere appreciation."
+            },
+            {
+                category: 'handling',
+                categoryName: 'Handling People',
+                number: 3,
+                rule: "Arouse in the other person an eager want."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 1,
+                rule: "Become genuinely interested in other people."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 2,
+                rule: "Smile."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 3,
+                rule: "Remember that a person's name is, to that person, the sweetest and most important sound in any language."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 4,
+                rule: "Be a good listener. Encourage others to talk about themselves."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 5,
+                rule: "Talk in terms of the other person's interests."
+            },
+            {
+                category: 'liking',
+                categoryName: 'Making People Like You',
+                number: 6,
+                rule: "Make the other person feel important—and do it sincerely."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 1,
+                rule: "The only way to get the best of an argument is to avoid it."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 2,
+                rule: "Show respect for the other person's opinions. Never say, 'You're wrong.'"
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 3,
+                rule: "If you are wrong, admit it quickly and emphatically."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 4,
+                rule: "Begin in a friendly way."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 5,
+                rule: "Get the other person saying 'yes, yes' immediately."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 6,
+                rule: "Let the other person do a great deal of the talking."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 7,
+                rule: "Let the other person feel that the idea is his or hers."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 8,
+                rule: "Try honestly to see things from the other person's point of view."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 9,
+                rule: "Be sympathetic with the other person's ideas and desires."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 10,
+                rule: "Appeal to the nobler motives."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 11,
+                rule: "Dramatize your ideas."
+            },
+            {
+                category: 'winning',
+                categoryName: 'Winning People to Your Way',
+                number: 12,
+                rule: "Throw down a challenge."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 1,
+                rule: "Begin with praise and honest appreciation."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 2,
+                rule: "Call attention to people's mistakes indirectly."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 3,
+                rule: "Talk about your own mistakes before criticizing the other person."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 4,
+                rule: "Ask questions instead of giving direct orders."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 5,
+                rule: "Let the other person save face."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 6,
+                rule: "Praise the slightest improvement and praise every improvement."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 7,
+                rule: "Give the other person a fine reputation to live up to."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 8,
+                rule: "Use encouragement. Make the fault seem easy to correct."
+            },
+            {
+                category: 'leadership',
+                categoryName: 'Leadership',
+                number: 9,
+                rule: "Make the other person happy about doing the thing you suggest."
+            }
+        ];
+
+        let currentRules = [...rules];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        function updateCard() {
+            const rule = currentRules[currentIndex];
+            document.getElementById('front-category').textContent = rule.categoryName;
+            document.getElementById('front-number').textContent = rule.number;
+            document.getElementById('front-text').textContent = 'Click to reveal the rule';
+            
+            document.getElementById('back-category').textContent = rule.categoryName;
+            document.getElementById('back-number').textContent = rule.number;
+            document.getElementById('back-text').textContent = rule.rule;
+            
+            document.getElementById('current-card').textContent = currentIndex + 1;
+            document.getElementById('total-cards').textContent = currentRules.length;
+            
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('next-btn').disabled = currentIndex === currentRules.length - 1;
+            
+            // Reset flip state
+            const flashcard = document.querySelector('.flashcard');
+            flashcard.classList.remove('flipped');
+            isFlipped = false;
+        }
+
+        function flipCard() {
+            const flashcard = document.querySelector('.flashcard');
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            if (currentIndex < currentRules.length - 1) {
+                currentIndex++;
+                updateCard();
+            }
+        }
+
+        function previousCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function filterCategory(category) {
+            // Update button states
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter rules
+            if (category === 'all') {
+                currentRules = [...rules];
+            } else {
+                currentRules = rules.filter(rule => rule.category === category);
+            }
+            
+            currentIndex = 0;
+            updateCard();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                previousCard();
+            } else if (e.key === 'ArrowRight') {
+                nextCard();
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // Initialize
+        updateCard();
+    </script>
+</body>
+</html>
